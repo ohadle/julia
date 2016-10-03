@@ -180,8 +180,7 @@ endif
 $(build_private_libdir)/%.$(SHLIB_EXT): $(build_private_libdir)/%.o
 	@$(call PRINT_LINK, $(CXX) $(LDFLAGS) -shared $(fPIC) -L$(build_private_libdir) -L$(build_libdir) -L$(build_shlibdir) -o $@ $< \
 		$(if $(findstring -debug.$(SHLIB_EXT),$(notdir $@)),-ljulia-debug,-ljulia) \
-		$$([ $(OS) = WINNT ] && echo '' -lssp) \
-		-lcompiler-rt)
+		$(RPATH_ORIGIN) -lcompiler-rt $$([ $(OS) = WINNT ] && echo '' -lssp))
 	@$(INSTALL_NAME_CMD)$(notdir $@) $@
 	@$(DSYMUTIL) $@
 
@@ -373,6 +372,8 @@ endif
 endif
 	$(INSTALL_F) $(addprefix $(JULIAHOME)/,src/julia.h src/julia_threads.h src/support/*.h) $(DESTDIR)$(includedir)/julia
 	$(INSTALL_F) $(BUILDROOT)/src/julia_version.h $(DESTDIR)$(includedir)/julia
+	# Copy julia's copy of compiler-rt
+	$(INSTALL_M) $(build_private_libdir)/*compiler-rt.$(SHLIB_EXT) $(DESTDIR)$(private_libdir)
 	# Copy system image
 	-$(INSTALL_F) $(build_private_libdir)/sys.ji $(DESTDIR)$(private_libdir)
 	$(INSTALL_M) $(build_private_libdir)/sys.$(SHLIB_EXT) $(DESTDIR)$(private_libdir)

@@ -32,20 +32,12 @@ COMPILER_RT_LIBFILE := libcompiler-rt.$(SHLIB_EXT)
 # TODO(vchuravy): ARM, PPC, mac, windows
 ##
 CRT_OS   := $(call lower,$(OS))
+ifneq (,$(filter $(ARCH), powerpc64le ppc64le))
+CRT_ARCH := ppc
+else
 CRT_ARCH := $(call patsubst,i%86,i386,$(ARCH))
+endif
 CRT_STATIC_NAME := clang_rt.builtins-$(CRT_ARCH)
-
-# We can only rely on compiler-rt being build alongside LLVM with CMAKE
-ifeq ($(LLVM_USE_CMAKE),0)
-override STANDALONE_COMPILER_RT := 1
-endif
-
-# Much to my chagrin LLVM 3.9 currently fails over if we try to build
-# compiler-rt without clang. We will need to patch the build system
-# but in the meantime we will fall back onto the standalone build.
-ifeq ($(BUILD_LLVM_CLANG),0)
-override STANDALONE_COMPILER_RT := 1
-endif
 
 ifeq ($(STANDALONE_COMPILER_RT),1)
 COMPILER_RT_TAR := $(SRCDIR)/srccache/compiler-rt-$(LLVM_TAR_EXT)
@@ -95,6 +87,13 @@ $(COMPILER_RT_BUILDDIR)/$(COMPILER_RT_LIBFILE): $(CRT_DIR)/lib$(CRT_STATIC_NAME)
 	$(CC) $(LDFLAGS) -shared $(fPIC) -o $@ -nostdlib $(WHOLE_ARCHIVE) -L$(dir $<) -l$(notdir $<) $(WHOLE_NOARCHIVE)
 endif
 
+ifneq ($(COMPILER_RT_TAR),)
+ifeq ($(LLVM_COMPILER_RT_TAR),)
+$(COMPILER_RT_TAR): | $(SRCDIR)/srccache
+	$(JLDOWNLOAD) $@ $(LLVM_SRC_URL)/$(notdir $@)
+endif
+endif
+
 get-compiler-rt: $(COMPILER_RT_TAR)
 ifeq ($(STANDALONE_COMPILER_RT), 0)
 extract-compiler-rt: #NONE
@@ -103,6 +102,7 @@ extract-compiler-rt: $(COMPILER_RT_SRCDIR)/source-extracted
 endif
 
 $(build_private_libdir)/$(COMPILER_RT_LIBFILE): $(COMPILER_RT_BUILDDIR)/$(COMPILER_RT_LIBFILE)
+	mkdir -p $(dir $@)
 	cp $< $@
 
 $(build_prefix)/manifest/compiler-rt: | $(build_prefix)/manifest
