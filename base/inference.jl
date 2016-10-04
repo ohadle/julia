@@ -1574,13 +1574,21 @@ function typeinf_edge(method::Method, atypes::ANY, sparams::SimpleVector, caller
         # so need to check whether the code itself is also inferred
         inf = code.inferred
         if !isa(inf, CodeInfo) || (inf::CodeInfo).inferred
-            return code.rettype
+            if code.jlcall_api == 2
+                return abstract_eval_constant(inf)
+            else
+                return code.rettype
+            end
         end
     end
     frame = typeinf_frame(code, true, true, caller)
     frame === nothing && return Any
     frame = frame::InferenceState
-    return widenconst(frame.bestguess)
+    if frame.linfo.jlcall_api == 2
+        return frame.bestguess
+    else
+        return widenconst(frame.bestguess)
+    end
 end
 
 #### entry points for inferring a MethodInstance given a type signature ####
