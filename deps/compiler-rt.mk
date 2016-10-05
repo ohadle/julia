@@ -46,7 +46,8 @@ COMPILER_RT_TAR := $(SRCDIR)/srccache/compiler-rt-$(LLVM_TAR_EXT)
 else
 COMPILER_RT_TAR :=
 ifeq ($(USE_SYSTEM_LLVM), 1)
-CRT_DIR := $(shell llvm-config --libdir)/clang/$(shell llvm-config --version)/lib/$(CRT_OS)
+VER:=$(patsubst svn-%,,$(shell llvm-config --version))
+CRT_DIR := $(shell llvm-config --libdir)/clang/$(VER)/lib/$(CRT_OS)
 else ifeq ($(BUILD_LLVM_COMPILER_RT), 1)
 CRT_DIR := $(LLVM_BUILDDIR_withtype)/lib/clang/$(LLVM_VER)/lib/$(CRT_OS)
 $(CRT_DIR)/lib$(CRT_STATIC_NAME): | $(LLVM_BUILDDIR_withtype)/build-compiled
