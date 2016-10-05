@@ -107,6 +107,8 @@ endif
 $(build_private_libdir)/$(COMPILER_RT_LIBFILE): $(COMPILER_RT_BUILDDIR)/$(COMPILER_RT_LIBFILE)
 	mkdir -p $(dir $@)
 	cp $< $@
+	@$(INSTALL_NAME_CMD)$(notdir $@) $@
+	@$(DSYMUTIL) $@
 
 $(build_prefix)/manifest/compiler-rt: | $(build_prefix)/manifest
 	echo "compiler-rt-$(LLVM_VER)" > $@
