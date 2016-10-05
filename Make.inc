@@ -486,10 +486,13 @@ OBJCOPY := $(CROSS_COMPILE)objcopy
 # file extensions
 ifeq ($(OS), WINNT)
   SHLIB_EXT := dll
+  STATICLIB_EXT := lib
 else ifeq ($(OS), Darwin)
   SHLIB_EXT := dylib
+  STATICLIB_EXT := a
 else
   SHLIB_EXT := so
+  STATICLIB_EXT := a
 endif
 
 # On Windows, we want shared library files to end up in $(build_bindir), instead of $(build_libdir)

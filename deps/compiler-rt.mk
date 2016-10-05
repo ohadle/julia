@@ -29,15 +29,18 @@ COMPILER_RT_LIBFILE := libcompiler-rt.$(SHLIB_EXT)
 # and we have to figure out what the proper name is on the current
 # platform.
 #
-# TODO(vchuravy): ARM, mac, windows
+# TODO(vchuravy): mac, windows
 ##
 CRT_OS   := $(call lower,$(OS))
+CRT_LDFLAGS :=
 ifneq (,$(filter $(ARCH), powerpc64le ppc64le))
 CRT_ARCH := ppc
-else ifneq (,$(filter $(ARCH), armhf, armv7l, armv6l))
+else ifneq (,$(filter $(ARCH), armv7l armv6l))
 CRT_ARCH := armhf
+CRT_LDFLAGS += -Wl,--allow-multiple-definitions
 else
 CRT_ARCH := $(call patsubst,i%86,i386,$(ARCH))
+CRT_LDFLAGS :=
 endif
 CRT_STATIC_NAME := clang_rt.builtins-$(CRT_ARCH)
 
@@ -46,11 +49,11 @@ COMPILER_RT_TAR := $(SRCDIR)/srccache/compiler-rt-$(LLVM_TAR_EXT)
 else
 COMPILER_RT_TAR :=
 ifeq ($(USE_SYSTEM_LLVM), 1)
-VER:=$(patsubst svn-%,,$(shell llvm-config --version))
-CRT_DIR := $(shell llvm-config --libdir)/clang/$(VER)/lib/$(CRT_OS)
+CRT_VER:=$(word 1,$(subst svn-, ,$(shell llvm-config --version)))
+CRT_DIR := $(shell llvm-config --libdir)/clang/$(CRT_VER)/lib/$(CRT_OS)
 else ifeq ($(BUILD_LLVM_COMPILER_RT), 1)
 CRT_DIR := $(LLVM_BUILDDIR_withtype)/lib/clang/$(LLVM_VER)/lib/$(CRT_OS)
-$(CRT_DIR)/lib$(CRT_STATIC_NAME): | $(LLVM_BUILDDIR_withtype)/build-compiled
+$(CRT_DIR)/lib$(CRT_STATIC_NAME).$(STATICLIB_EXT): | $(LLVM_BUILDDIR_withtype)/build-compiled
 else
 $(error Compiler-rt is not available, please set STANDALONE_COMPILER_RT:=1)
 endif
@@ -86,8 +89,8 @@ else
 $(COMPILER_RT_BUILDDIR)/build-configured: $(COMPILER_RT_BUILDDIR)
 	echo 1 > $@
 # Use compiler-rt from the clang installation
-$(COMPILER_RT_BUILDDIR)/$(COMPILER_RT_LIBFILE): $(CRT_DIR)/lib$(CRT_STATIC_NAME) | $(COMPILER_RT_BUILDDIR)/build-configured
-	$(CC) $(LDFLAGS) -shared $(fPIC) -o $@ -nostdlib $(WHOLE_ARCHIVE) -L$(dir $<) -l$(notdir $<) $(WHOLE_NOARCHIVE)
+$(COMPILER_RT_BUILDDIR)/$(COMPILER_RT_LIBFILE): $(CRT_DIR)/lib$(CRT_STATIC_NAME).$(STATICLIB_EXT) | $(COMPILER_RT_BUILDDIR)/build-configured
+	$(CC) $(LDFLAGS) -nostdlib $(CRT_LDFLAGS) -shared $(fPIC) -o $@ $(WHOLE_ARCHIVE) -L$(dir $<) -l$(CRT_STATIC_NAME) $(WHOLE_NOARCHIVE)
 endif
 
 ifneq ($(COMPILER_RT_TAR),)

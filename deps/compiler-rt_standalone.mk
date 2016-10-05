@@ -38,8 +38,11 @@ BLACKLIST := atomic.o atomic_flag_clear.o atomic_flag_clear_explicit.o \
 		atomic_flag_test_and_set.o atomic_flag_test_and_set_explicit.o \
 		atomic_signal_fence.o atomic_thread_fence.o
 
+CRT_LDFLAGS :=
 ifeq ($(ARCH),ppc)
 BLACKLIST += saveFP.o restFP.o
+else ifeq ($(ARCH), armhf)
+CRT_LDFLAGS += -Wl,--allow-multiple-definition
 endif
 
 ifeq ($(OS),darwin)
@@ -72,7 +75,7 @@ OBJS := $(GENERAL_OBJS) $(ARCH_OBJS)
 
 .PHONY: $(LIBFILE)
 $(LIBFILE): $(OBJS)
-	$(CC) $(LDFLAGS) -shared -o $@ $^
+	$(CC) $(CRT_LDFLAGS) $(LDFLAGS) -shared -o $@ $^
 
 clean: $(OBJS) $(LIBFILE)
 	rm $^
