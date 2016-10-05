@@ -12,7 +12,15 @@
 # The standalone compiler-rt build is inspired by
 # https://github.com/ReservedField/arm-compiler-rt
 SRCDIR := $(CRT_SRCDIR)/lib/builtins
+
+ifeq($(ARCH), armhf)
+ARCH_SRCDIR := $(SRCDIR)/arm
+else ifeq($(ARCH), aarch64)
+ARCH_SRCDIR := $(SRCDIR)/arm64
+else
 ARCH_SRCDIR := $(SRCDIR)/$(ARCH)
+endif
+
 INCLUDES := -I$(SRCDIR) -I$(ARCH_SRCDIR)
 # TODO(vchuravy) discover architecture flags
 CRT_CFLAGS := $(CPPFLAGS) $(CFLAGS) -O2 -std=c11 \
@@ -31,12 +39,12 @@ BLACKLIST := atomic.o atomic_flag_clear.o atomic_flag_clear_explicit.o \
 		atomic_signal_fence.o atomic_thread_fence.o
 
 ifeq ($(ARCH),ppc)
-	BLACKLIST += saveFP.o restFP.o
+BLACKLIST += saveFP.o restFP.o
 endif
 
 ifeq ($(OS),darwin)
-	# Which blacklist should we choose
-	BLACKLIST += $(shell cat $(SRCDIR)/Darwin-excludes/osx.txt)
+# Which blacklist should we choose
+BLACKLIST += $(shell cat $(SRCDIR)/Darwin-excludes/osx.txt)
 endif
 
 CFILES := $(wildcard $(SRCDIR)/*.c)
