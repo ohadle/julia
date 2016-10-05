@@ -34,7 +34,7 @@ COMPILER_RT_LIBFILE := libcompiler-rt.$(SHLIB_EXT)
 CRT_OS   := $(call lower,$(OS))
 ifneq (,$(filter $(ARCH), powerpc64le ppc64le))
 CRT_ARCH := ppc
-else ifneq(,$(filter $(ARCH), armhf, armv7l, armv6l))
+else ifneq (,$(filter $(ARCH), armhf, armv7l, armv6l))
 CRT_ARCH := armhf
 else
 CRT_ARCH := $(call patsubst,i%86,i386,$(ARCH))

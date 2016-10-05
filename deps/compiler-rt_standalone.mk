@@ -13,9 +13,9 @@
 # https://github.com/ReservedField/arm-compiler-rt
 SRCDIR := $(CRT_SRCDIR)/lib/builtins
 
-ifeq($(ARCH), armhf)
+ifeq ($(ARCH), armhf)
 ARCH_SRCDIR := $(SRCDIR)/arm
-else ifeq($(ARCH), aarch64)
+else ifeq ($(ARCH), aarch64)
 ARCH_SRCDIR := $(SRCDIR)/arm64
 else
 ARCH_SRCDIR := $(SRCDIR)/$(ARCH)
