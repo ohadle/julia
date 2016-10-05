@@ -37,7 +37,7 @@ ifneq (,$(filter $(ARCH), powerpc64le ppc64le))
 CRT_ARCH := ppc
 else ifneq (,$(filter $(ARCH), armv7l armv6l))
 CRT_ARCH := armhf
-CRT_LDFLAGS += -Wl,--allow-multiple-definitions
+CRT_LDFLAGS += -Wl,--allow-multiple-definition
 else
 CRT_ARCH := $(call patsubst,i%86,i386,$(ARCH))
 CRT_LDFLAGS :=
