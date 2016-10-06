@@ -121,6 +121,9 @@ script:
             install -pm755 usr/lib/lib${name}*.dylib* /tmp/julia/lib/julia/;
         done;
       fi
+    - make $BUILDOPTS julia-genstdlib &&
+        (git diff --stat --exit-code doc/stdlib ||
+         (echo "Outdated files in doc/stdlib, please run make julia-genstdlib locally"; false))
     - cd .. && mv julia julia2
     - /tmp/julia/bin/julia --precompiled=no -e 'true' &&
         /tmp/julia/bin/julia-debug --precompiled=no -e 'true'
