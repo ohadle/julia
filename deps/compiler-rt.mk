@@ -23,13 +23,14 @@
 COMPILER_RT_BUILDDIR := $(BUILDDIR)/compiler-rt-$(LLVM_VER)
 COMPILER_RT_SRCDIR := $(SRCDIR)/srccache/compiler-rt-$(LLVM_VER)
 COMPILER_RT_LIBFILE := libcompiler-rt.$(SHLIB_EXT)
+COMPILER_RT_STATICLIBFILE := libcompiler-rt.$(STATICLIB_EXT)
 
 ##
 # The naming of the static file for compiler-rt is slightly weird
 # and we have to figure out what the proper name is on the current
 # platform.
 #
-# TODO(vchuravy): mac, windows
+# TODO(vchuravy): windows
 ##
 CRT_OS   := $(call lower,$(OS))
 CRT_LDFLAGS :=
@@ -77,20 +78,28 @@ $(COMPILER_RT_BUILDDIR)/Makefile: compiler-rt_standalone.mk | $(COMPILER_RT_BUIL
 	cp $< $@
 $(COMPILER_RT_BUILDDIR)/build-configured: $(COMPILER_RT_BUILDDIR)/Makefile | $(COMPILER_RT_BUILDDIR)/$(CRT_ARCH)
 	echo 1 > $@
-$(COMPILER_RT_BUILDDIR)/$(COMPILER_RT_LIBFILE): | $(COMPILER_RT_SRCDIR)/source-extracted $(COMPILER_RT_BUILDDIR)/build-configured
+
+export $(CC)
+
+$(COMPILER_RT_BUILDDIR)/build-compiled: | $(COMPILER_RT_SRCDIR)/source-extracted $(COMPILER_RT_BUILDDIR)/build-configured
 	$(MAKE) -C $(COMPILER_RT_BUILDDIR) \
 		LIBFILE=$(COMPILER_RT_LIBFILE) \
+		SLIBFILE=$(COMPILER_RT_STATICLIBFILE) \
 		CRT_SRCDIR=$(COMPILER_RT_SRCDIR) \
 		OS=$(CRT_OS) \
 		ARCH=$(CRT_ARCH) \
 		USE_CLANG=$(USE_CLANG) \
-		fPIC=$(fPIC)
+		fPIC=$(fPIC) all
+$(COMPILER_RT_BUILDDIR)/$(COMPILER_RT_LIBFILE): | $(COMPILER_RT_BUILDDIR)/build-compiled
+$(COMPILER_RT_BUILDDIR)/$(COMPILER_RT_STATICLIBFILE): | $(COMPILER_RT_BUILDDIR)/build-compiled
 else
 $(COMPILER_RT_BUILDDIR)/build-configured: $(COMPILER_RT_BUILDDIR)
 	echo 1 > $@
 # Use compiler-rt from the clang installation
 $(COMPILER_RT_BUILDDIR)/$(COMPILER_RT_LIBFILE): $(CRT_DIR)/lib$(CRT_STATIC_NAME).$(STATICLIB_EXT) | $(COMPILER_RT_BUILDDIR)/build-configured
 	$(CC) $(LDFLAGS) -nostdlib $(CRT_LDFLAGS) -shared $(fPIC) -o $@ $(WHOLE_ARCHIVE) -L$(dir $<) -l$(CRT_STATIC_NAME) $(WHOLE_NOARCHIVE)
+$(COMPILER_RT_BUILDDIR)/$(COMPILER_RT_STATICLIBFILE): $(CRT_DIR)/lib$(CRT_STATIC_NAME).$(STATICLIB_EXT) | $(COMPILER_RT_BUILDDIR)/build-configured
+	cp $^ $@
 endif
 
 ifneq ($(COMPILER_RT_TAR),)
@@ -113,6 +122,12 @@ $(build_private_libdir)/$(COMPILER_RT_LIBFILE): $(COMPILER_RT_BUILDDIR)/$(COMPIL
 	@$(INSTALL_NAME_CMD)$(notdir $@) $@
 	@$(DSYMUTIL) $@
 
+$(build_private_libdir)/$(COMPILER_RT_STATICLIBFILE): $(COMPILER_RT_BUILDDIR)/$(COMPILER_RT_STATICLIBFILE)
+	mkdir -p $(dir $@)
+	cp $< $@
+	@$(INSTALL_NAME_CMD)$(notdir $@) $@
+	@$(DSYMUTIL) $@
+
 $(build_prefix)/manifest/compiler-rt: | $(build_prefix)/manifest
 	echo "compiler-rt-$(LLVM_VER)" > $@
 
@@ -123,10 +138,11 @@ clean-compiler-rt:
 	rm -rf $(COMPILER_RT_BUILDDIR)
 	rm -f  $(build_prefix)/manifest/compiler-rt
 	rm -f  $(build_private_libdir)/$(COMPILER_RT_LIBFILE)
+	rm -f  $(build_private_libdir)/$(COMPILER_RT_STATICLIBFILE)
 distclean-compiler-rt: clean-compiler-rt
 	rm -f $(COMPILER_RT_TAR)
 	rm -rf $(COMPILER_RT_SRCDIR)
 
 compile-compiler-rt: $(COMPILER_RT_BUILDDIR)/$(COMPILER_RT_LIBFILE)
-install-compiler-rt: $(build_private_libdir)/$(COMPILER_RT_LIBFILE) $(build_prefix)/manifest/compiler-rt
+install-compiler-rt: $(build_private_libdir)/$(COMPILER_RT_LIBFILE) $(build_private_libdir)/$(COMPILER_RT_STATICLIBFILE) $(build_prefix)/manifest/compiler-rt
 

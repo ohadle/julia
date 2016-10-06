@@ -3,6 +3,7 @@
 # Expected variables from the parent
 # CRT_SRCDIR
 # LIBFILE
+# SLIBFILE
 # OS (CRT_OS not JL_OS)
 # ARCH (CRT_ARCH not JL_ARCH)
 # USE_CLANG
@@ -73,10 +74,14 @@ OBJS := $(GENERAL_OBJS) $(ARCH_OBJS)
 %.o: $(ARCH_SRCDIR)/%.S
 	$(CC) $(CRT_CFLAGS) -c $< -o $@
 
-.PHONY: $(LIBFILE)
 $(LIBFILE): $(OBJS)
 	$(CC) $(CRT_LDFLAGS) $(LDFLAGS) -shared -o $@ $^
 
-clean: $(OBJS) $(LIBFILE)
+$(SLIBFILE): $(OBJS)
+	ar rs $@ $^
+
+.PHONY: all
+all: $(LIBFILE) $(SLIBFILE)
+clean: $(OBJS) $(LIBFILE) $(SLIBFILE)
 	rm $^
 

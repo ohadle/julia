@@ -180,7 +180,7 @@ endif
 $(build_private_libdir)/%.$(SHLIB_EXT): $(build_private_libdir)/%.o
 	@$(call PRINT_LINK, $(CXX) $(LDFLAGS) -shared $(fPIC) -L$(build_private_libdir) -L$(build_libdir) -L$(build_shlibdir) -o $@ $< \
 		$(if $(findstring -debug.$(SHLIB_EXT),$(notdir $@)),-ljulia-debug,-ljulia) \
-		$(RPATH_ORIGIN) -lcompiler-rt $$([ $(OS) = WINNT ] && echo '' -lssp))
+		$(STATIC) -lcompiler-rt $(NO_STATIC) $$([ $(OS) = WINNT ] && echo '' -lssp))
 	@$(INSTALL_NAME_CMD)$(notdir $@) $@
 	@$(DSYMUTIL) $@
 
