@@ -890,10 +890,6 @@ else
   RPATH_LIB := -Wl,-rpath,'$$ORIGIN' -Wl,-rpath,'$$ORIGIN/julia' -Wl,-z,origin
 endif
 
-# static linking
-STATIC=-Wl,-Bstatic
-NO_STATIC=-Wl,-Bdynamic
-
 # --whole-archive
 ifeq ($(OS), Darwin)
   WHOLE_ARCHIVE := -Xlinker -all_load
