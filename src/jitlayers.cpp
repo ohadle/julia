@@ -312,7 +312,7 @@ void NotifyDebugger(jit_code_entry *JITCodeEntry)
 static uint64_t resolve_compiler_rt(const char *name)
 {
     static void *compiler_rt_hdl = jl_load_dynamic_library_e("libcompiler-rt",
-                                                             JL_RTLD_LOCAL);
+                                                             JL_RTLD_LOCAL | JL_RTLD_LAZY);
     static const char *const prefix = "__";
     if (!compiler_rt_hdl)
         return 0;
