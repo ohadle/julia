@@ -216,7 +216,13 @@ for itr in [Base.product(1:0),
             Base.product(1:0, 1:2),
             Base.product(1:0, 1:1, 1:2),
             Base.product(1:1, 1:0, 1:2),
-            Base.product(1:1, 1:2 ,1:0)]
+            Base.product(1:1, 1:2 ,1:0),
+            Base.lexproduct(1:0),
+            Base.lexproduct(1:2, 1:0),
+            Base.lexproduct(1:0, 1:2),
+            Base.lexproduct(1:0, 1:1, 1:2),
+            Base.lexproduct(1:1, 1:0, 1:2),
+            Base.lexproduct(1:1, 1:2 ,1:0)]
     @test isempty(itr)
     @test isempty(collect(itr))
 end
@@ -226,10 +232,22 @@ end
 @test collect(Base.product(1:2, 3:4))      == [(i, j)    for i=1:2, j=3:4]
 @test collect(Base.product(1:2, 3:4, 5:6)) == [(i, j, k) for i=1:2, j=3:4, k=5:6]
 
+@test collect(Base.lexproduct(1:2))           == [(i,)      for i=1:2]
+@test collect(Base.lexproduct(1:2, 3:4))      == [(i, j)    for j=3:4, i=1:2]
+@test collect(Base.lexproduct(1:2, 3:4, 5:6)) == [(i, j, k) for k=5:6, j=3:4, i=1:2 ]
+
 # iteration order
 let
     expected = [(1,3,5), (2,3,5), (1,4,5), (2,4,5), (1,3,6), (2,3,6), (1,4,6), (2,4,6)]
     actual = Base.product(1:2, 3:4, 5:6)
+    for (exp, act) in zip(expected, actual)
+        @test exp == act
+    end
+end
+
+let
+    expected = [(1,3,5), (1,3,6), (1,4,5), (1,4,6), (2,3,5), (2,3,6), (2,4,5), (2,4,6)]
+    actual = Base.lexproduct(1:2, 3:4, 5:6)
     for (exp, act) in zip(expected, actual)
         @test exp == act
     end
