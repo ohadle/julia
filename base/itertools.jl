@@ -1,6 +1,14 @@
 # This file is a part of Julia. License is MIT: http://julialang.org/license
 
-isempty(itr) = done(itr, start(itr))
+module IterTools
+
+global Filter
+
+import Base: start, done, next, isempty, length, size, eltype, iteratorsize, iteratoreltype, indices, ndims
+
+using Base: tuple_type_cons, SizeUnknown, HasLength, HasShape, IsInfinite, EltypeUnknown, HasEltype, OneTo
+
+export enumerate, zip, rest, countfrom, take, drop, cycle, repeated, product, flatten, partition
 
 _min_length(a, b, ::IsInfinite, ::IsInfinite) = min(length(a),length(b)) # inherit behaviour, error
 _min_length(a, b, A, ::IsInfinite) = length(a)
@@ -11,6 +19,14 @@ _diff_length(a, b, A, ::IsInfinite) = 0
 _diff_length(a, b, ::IsInfinite, ::IsInfinite) = 0
 _diff_length(a, b, ::IsInfinite, B) = length(a) # inherit behaviour, error
 _diff_length(a, b, A, B) = max(length(a)-length(b), 0)
+
+and_iteratorsize{T}(isz::T, ::T) = isz
+and_iteratorsize(::HasLength, ::HasShape) = HasLength()
+and_iteratorsize(::HasShape, ::HasLength) = HasLength()
+and_iteratorsize(a, b) = SizeUnknown()
+
+and_iteratoreltype{T}(iel::T, ::T) = iel
+and_iteratoreltype(a, b) = EltypeUnknown()
 
 # enumerate
 
@@ -143,11 +159,6 @@ zip(a, b, c...) = Zip(a, zip(b, c...))
 length(z::Zip) = _min_length(z.a, z.z, iteratorsize(z.a), iteratorsize(z.z))
 size(z::Zip) = promote_shape(size(z.a), size(z.z))
 indices(z::Zip) = promote_shape(indices(z.a), indices(z.z))
-tuple_type_cons{S}(::Type{S}, ::Type{Union{}}) = Union{}
-function tuple_type_cons{S,T<:Tuple}(::Type{S}, ::Type{T})
-    @_pure_meta
-    Tuple{S, T.parameters...}
-end
 eltype{I,Z}(::Type{Zip{I,Z}}) = tuple_type_cons(eltype(I), eltype(Z))
 @inline start(z::Zip) = tuple(start(z.a), start(z.z))
 @inline function next(z::Zip, st)
@@ -729,4 +740,6 @@ function next(itr::PartitionIterator, state)
         v[i], state = next(itr.c, state)
     end
     return resize!(v, i), state
+end
+
 end

@@ -1019,4 +1019,8 @@ eval(Multimedia, :(macro textmime(mime)
     end
 end))
 
+@deprecate_binding Filter IterTools.Filter
+@deprecate_binding Zip IterTools.Zip
+@deprecate filter(flt, itr) IterTools.filter(flt, itr)
+
 # End deprecations scheduled for 0.6
