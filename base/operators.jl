@@ -27,7 +27,29 @@ supertype(T::DataType) = T.super
 
 ## generic comparison ##
 
-==(x, y) = x === y
+immutable NotComparableError{S, T}
+    a::S
+    b::T
+end
+!(e::NotComparableError) = throw(e)
+function showerror{S, T}(io::IO, err::NotComparableError{S, T})
+    print(io, "cannot compare values of type $S with values of type $T.\nFound in attempt to compare ")
+    iolim = IOContext(io, :limit=>true)
+    show(iolim, err.a)
+    print(io, " with ")
+    show(iolim, err.b)
+    print(io, ".")
+end
+
+==(x::ANY, y::ANY) = throw(NotComparableError(x, y))
+=={T}(x::T, y::T) = x === y
+==(x::Union{Symbol, Expr, GlobalRef}, y::Union{Symbol, Expr, GlobalRef}) = x === y
+==(x::Function, y::Function) = x === y
+==(x::Void, y::Void) = true
+==(x::Void, y::Any) = false
+==(x::Any, y::Void) = false
+==(x::Void, y::WeakRef) = false
+==(x::WeakRef, y::Void) = false
 
 """
     isequal(x, y)
@@ -48,25 +70,20 @@ Scalar types generally do not need to implement `isequal` separate from `==`, un
 represent floating-point numbers amenable to a more efficient implementation than that
 provided as a generic fallback (based on `isnan`, `signbit`, and `==`).
 """
-isequal(x, y) = x == y
+function isequal(x, y)
+    res = false
+    try
+        res = x == y
+    catch err
+        isa(err, NotComparableError) || rethrow(err)
+    end
+    res
+end
 
 # TODO: these can be deleted once the deprecations of ==(x::Char, y::Integer) and
 # ==(x::Integer, y::Char) are gone and the above returns false anyway
 isequal(x::Char, y::Integer) = false
 isequal(x::Integer, y::Char) = false
-
-## minimally-invasive changes to test == causing NotComparableError
-# export NotComparableError
-# =={T}(x::T, y::T) = x === y
-# immutable NotComparableError <: Exception end
-# const NotComparable = NotComparableError()
-# ==(x::ANY, y::ANY) = NotComparable
-# !(e::NotComparableError) = throw(e)
-# isequal(x, y) = (x == y) === true
-
-## alternative NotComparableError which captures context
-# immutable NotComparableError; a; b; end
-# ==(x::ANY, y::ANY) = NotComparableError(x, y)
 
 isequal(x::AbstractFloat, y::AbstractFloat) = (isnan(x) & isnan(y)) | (signbit(x) == signbit(y)) & (x == y)
 isequal(x::Real,          y::AbstractFloat) = (isnan(x) & isnan(y)) | (signbit(x) == signbit(y)) & (x == y)

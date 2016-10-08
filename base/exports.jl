@@ -159,6 +159,7 @@ export
     LoadError,
     InitError,
     MethodError,
+    NotComparableError,
     NullException,
     ParseError,
     ProcessExitedException,

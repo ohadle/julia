@@ -1019,4 +1019,7 @@ eval(Multimedia, :(macro textmime(mime)
     end
 end))
 
+#@deprecate ==(x::Void, y::Any) isequal(x, y)
+#@deprecate ==(x::Any, y::Void) isequal(x, y)
+
 # End deprecations scheduled for 0.6

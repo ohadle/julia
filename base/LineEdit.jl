@@ -901,7 +901,7 @@ function validate_keymap(keymap)
         visited_keys = Any[key]
         v = getEntry(keymap,key)
         while isa(v,KeyAlias)
-            if v.seq in visited_keys
+            if any(k->isequal(v.seq, k), visited_keys)
                 error("Alias cycle detected in keymap")
             end
             push!(visited_keys,v.seq)

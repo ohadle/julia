@@ -2080,7 +2080,7 @@ macro _findr(op, A, region, Tv, Ti)
     zval = zero($Tv)
     szA = size($A)
 
-    if $region == 1 || $region == (1,)
+    if isequal($region, 1) || isequal($region, (1,))
         (N == 0) && (return (fill(zval,1,n), fill(convert($Ti,1),1,n)))
         S = Array{$Tv}(n); I = Array{$Ti}(n)
         @inbounds for i = 1 : n
@@ -2099,7 +2099,7 @@ macro _findr(op, A, region, Tv, Ti)
             S[i] = Sc; I[i] = Ic
         end
         return(reshape(S,1,n), reshape(I,1,n))
-    elseif $region == 2 || $region == (2,)
+    elseif isequal($region, 2) || isequal($region, (2,))
         (N == 0) && (return (fill(zval,m,1), fill(convert($Ti,1),m,1)))
         S = Array{$Tv}(m); I = Array{$Ti}(m)
         @inbounds for row in 1:m
@@ -2117,7 +2117,7 @@ macro _findr(op, A, region, Tv, Ti)
             end
         end
         return (reshape(S,m,1), reshape(I,m,1))
-    elseif $region == (1,2)
+    elseif isequal($region, (1,2))
         (N == 0) && (return (fill(zval,1,1), fill(convert($Ti,1),1,1)))
         hasz = nnz($A) != length($A)
         Sv = hasz ? zval : nzval[1]
@@ -2591,7 +2591,7 @@ function setindex!{Tv,Ti<:Integer}(A::SparseMatrixCSC{Tv,Ti}, v::Tv, i::Ti, j::T
     end
     # Column j does not contain entry A[i,j]. If v is nonzero, insert entry A[i,j] = v
     # and return. If to the contrary v is zero, then simply return.
-    if v != 0
+    if !isequal(v, 0)
         insert!(A.rowval, searchk, i)
         insert!(A.nzval, searchk, v)
         @simd for m in (j + 1):(A.n + 1)
@@ -3090,7 +3090,7 @@ function setindex!{Tv,Ti,T<:Real}(A::SparseMatrixCSC{Tv,Ti}, x, I::AbstractVecto
         if (mode > 1) && (nadd == 0)
             # copy storage to take changes
             colptrA = copy(colptrB)
-            memreq = (x == 0) ? 0 : n
+            memreq = isequal(x, 0) ? 0 : n
             # see comment/TODO for same statement in preceding logical setindex! method
             rowvalA = copy(rowvalB)
             nzvalA = copy(nzvalB)

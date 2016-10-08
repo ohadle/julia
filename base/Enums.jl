@@ -9,6 +9,9 @@ abstract Enum
 
 Base.convert{T<:Integer}(::Type{T}, x::Enum) = convert(T, box(Int32, x))
 
+Base.:(==)(x::Enum, y::Integer) = Int32(x) == y
+Base.:(==)(x::Integer, y::Enum) = x == Int32(y)
+
 Base.write(io::IO, x::Enum) = write(io, Int32(x))
 Base.read{T<:Enum}(io::IO, ::Type{T}) = T(read(io, Int32))
 

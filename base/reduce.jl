@@ -623,7 +623,7 @@ julia> 5 in a
 false
 ```
 """
-in(x, itr) = any(Predicate(y -> y == x), itr)
+in(x, itr) = any(Predicate(y -> isequal(y, x)), itr)
 
 const ∈ = in
 ∉(x, itr)=!∈(x, itr)

@@ -167,7 +167,7 @@ end
 @test !(Type{Tuple{Int,Int}} <: Tuple)
 @test Tuple{Type{Int}} <: Tuple{DataType}
 
-@test () != Type{Tuple{}}
+@test_throws NotComparableError () == Type{Tuple{}}
 
 # issue #6561
 @test issubtype(Array{Tuple}, Array{NTuple})

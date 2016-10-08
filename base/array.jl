@@ -975,7 +975,8 @@ end
 """
     findnext(A, i::Integer)
 
-Find the next linear index >= `i` of a non-zero element of `A`, or `0` if not found.
+Find the next linear index >= `i` of a non-zero element of `A` (determined by
+`!isequal(A[i], 0)`), or `0` if not found.
 
 ```jldoctest
 julia> A = [0 0; 1 0]
@@ -992,7 +993,7 @@ julia> findnext(A,3)
 """
 function findnext(A, start::Integer)
     for i = start:length(A)
-        if A[i] != 0
+        if !isequal(A[i], 0)
             return i
         end
     end
@@ -1002,7 +1003,7 @@ end
 """
     findfirst(A)
 
-Return the linear index of the first non-zero value in `A` (determined by `A[i]!=0`).
+Return the linear index of the first non-zero value in `A` (determined by `!isequal(A[i], 0)`).
 Returns `0` if no such value is found.
 
 ```jldoctest
