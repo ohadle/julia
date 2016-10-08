@@ -46,9 +46,12 @@ else ifeq ($(ARCH), armhf)
 CRT_LDFLAGS += -Wl,--allow-multiple-definition
 endif
 
+
 ifeq ($(OS),darwin)
 # Which blacklist should we choose
 BLACKLIST += $(shell cat $(SRCDIR)/Darwin-excludes/osx.txt)
+else ifeq ($(OS), winnt)
+CRT_CFLAGS += -D_WIN32
 endif
 
 CFILES := $(wildcard $(SRCDIR)/*.c)
@@ -75,7 +78,7 @@ OBJS := $(GENERAL_OBJS) $(ARCH_OBJS)
 	$(CC) $(CRT_CFLAGS) -c $< -o $@
 
 $(LIBFILE): $(OBJS)
-	$(CC) $(CRT_LDFLAGS) $(LDFLAGS) -shared -o $@ $^
+	$(CC) $(CRT_LDFLAGS) $(CRT_CFLAGS) $(LDFLAGS) -shared -o $@ $^
 
 $(SLIBFILE): $(OBJS)
 	ar rs $@ $^
