@@ -314,10 +314,12 @@ static uint64_t resolve_compiler_rt(const char *name)
     static void *compiler_rt_hdl = jl_load_dynamic_library_e("libcompiler-rt",
                                                              JL_RTLD_LOCAL | JL_RTLD_LAZY);
     static const char *const prefix = "__";
-    if (!compiler_rt_hdl)
+    if (!compiler_rt_hdl) {
+        llvm::report_fatal_error("FATAL: Unable to dlopen compiler-rt");
         return 0;
-    if (strncmp(name, prefix, strlen(prefix)) != 0)
+    } else if (strncmp(name, prefix, strlen(prefix)) != 0) {
         return 0;
+    }
     return (uintptr_t)jl_dlsym_e(compiler_rt_hdl, name);
 }
 
