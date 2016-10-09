@@ -79,10 +79,9 @@ $(COMPILER_RT_BUILDDIR)/Makefile: compiler-rt_standalone.mk | $(COMPILER_RT_BUIL
 $(COMPILER_RT_BUILDDIR)/build-configured: $(COMPILER_RT_BUILDDIR)/Makefile | $(COMPILER_RT_BUILDDIR)/$(CRT_ARCH)
 	echo 1 > $@
 
-export $(CC)
-
 $(COMPILER_RT_BUILDDIR)/build-compiled: | $(COMPILER_RT_SRCDIR)/source-extracted $(COMPILER_RT_BUILDDIR)/build-configured
 	$(MAKE) -C $(COMPILER_RT_BUILDDIR) \
+		CC='$(CC)' \
 		LIBFILE=$(COMPILER_RT_LIBFILE) \
 		SLIBFILE=$(COMPILER_RT_STATICLIBFILE) \
 		CRT_SRCDIR=$(COMPILER_RT_SRCDIR) \
